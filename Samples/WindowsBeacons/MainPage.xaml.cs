@@ -30,6 +30,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using UniversalBeacon.Library.Core.Entities;
+using UniversalBeacon.Library.Core.Interfaces;
 using UniversalBeacon.Library.Core.Interop;
 using UniversalBeacon.Library.UWP;
 using UniversalBeaconLibrary;
@@ -82,11 +83,15 @@ namespace WindowsBeacons
             {
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { action(); });
             });
+
             BeaconListView.ItemsSource = _beaconManager.BluetoothBeacons;
+
 
             // Subscribe to status change events of the provider
             _provider.WatcherStopped += WatcherOnStopped;
             _beaconManager.BeaconAdded += BeaconManagerOnBeaconAdded;
+            _beaconManager.BluetoothBeacons.CollectionChanged += FilterBeacons;
+
 
             if (ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
             {
@@ -126,6 +131,7 @@ namespace WindowsBeacons
             {
                 SetStatusOutput(_resourceLoader.GetString("WatchingForBeacons"));
             }
+
         }
 
 
@@ -137,6 +143,7 @@ namespace WindowsBeacons
             _restartingBeaconWatch = false;
         }
 
+        
         #region Bluetooth Beacons
         /// <summary>
         /// Method demonstrating how to handle individual new beacons found by the manager.
@@ -152,6 +159,8 @@ namespace WindowsBeacons
         /// the Bluetooth beacon.</param>
         private void BeaconManagerOnBeaconAdded(object sender, Beacon beacon)
         {
+            //BeaconListView.ItemsSource = _beaconManager.BluetoothBeacons.Where(w => w.BeaconType.ToString() != "Unknown");
+            if (beacon.BeaconType.ToString().Equals("Unknown")) { return; }
             Debug.WriteLine("\nBeacon: " + beacon.BluetoothAddressAsString);
             Debug.WriteLine("Type: " + beacon.BeaconType);
             Debug.WriteLine("Last Update: " + beacon.Timestamp);
@@ -248,6 +257,11 @@ namespace WindowsBeacons
             SetStatusOutput(_resourceLoader.GetString(errorMsg));
         }
 
+        public void FilterBeacons(object sender, EventArgs e)
+        {
+            
+        }
+
 #if DEBUG
         private void PrintBeaconInfoExample()
         {
@@ -316,7 +330,6 @@ namespace WindowsBeacons
             });
         }
 
-
         private void AboutButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
             MainSplitView.IsPaneOpen = !MainSplitView.IsPaneOpen;
@@ -332,7 +345,6 @@ namespace WindowsBeacons
         {
             _beaconManager.Start();
         }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
 

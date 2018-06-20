@@ -114,7 +114,6 @@ namespace UniversalBeacon.Library.Core.Entities
         private void ReceivedAdvertisement(BLEAdvertisementPacket btAdv)
         {
             if (btAdv == null) return;
-
             // Check if we already know this bluetooth address
             foreach (var bluetoothBeacon in BluetoothBeacons)
             {
@@ -129,6 +128,7 @@ namespace UniversalBeacon.Library.Core.Entities
 
             // Beacon was not yet known - add it to the list.
             var newBeacon = new Beacon(btAdv);
+            if (newBeacon.BeaconType.ToString().Equals("Unknown")) { return; }
             BluetoothBeacons.Add(newBeacon);
             BeaconAdded?.Invoke(this, newBeacon);
         }
